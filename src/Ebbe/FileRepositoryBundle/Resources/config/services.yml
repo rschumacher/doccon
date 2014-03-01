@@ -1,0 +1,12 @@
+parameters:
+#    ebbe_file_repository.example.class: Ebbe\FileRepositoryBundle\Example
+
+services:
+#    ebbe_file_repository.example:
+#        class: %ebbe_file_repository.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]
+    ebbe_file_repository.admin.file_location:
+        class: Ebbe\FileRepositoryBundle\Admin\FileLocationAdmin
+        arguments: [~, Ebbe\FileRepositoryBundle\Entity\FileLocation, EbbeFileRepositoryBundle:FileLocationAdmin]
+        tags:
+            - {name: sonata.admin, manager_type: orm, group: admin, label: FileLocation}
