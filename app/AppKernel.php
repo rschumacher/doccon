@@ -18,14 +18,15 @@ class AppKernel extends Kernel
             new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
 
 	        // Add your dependencies
+			new Knp\Bundle\MenuBundle\KnpMenuBundle(),
+
 	        new Sonata\CoreBundle\SonataCoreBundle(),
 	        new Sonata\BlockBundle\SonataBlockBundle(),
-	        new Sonata\jQueryBundle\SonatajQueryBundle(),
-	        new Knp\Bundle\MenuBundle\KnpMenuBundle(),
+            new Sonata\jQueryBundle\SonatajQueryBundle(),
 	        new FOS\UserBundle\FOSUserBundle(),
 	        new Sonata\UserBundle\SonataUserBundle('FOSUserBundle'),
 			new Sonata\EasyExtendsBundle\SonataEasyExtendsBundle(),
-			// new Sonata\IntlBundle\SonataIntlBundle(),
+			new Sonata\IntlBundle\SonataIntlBundle(),
 
 	        // If you haven't already, add the storage bundle
 	        // This example uses SonataDoctrineORMAdmin but

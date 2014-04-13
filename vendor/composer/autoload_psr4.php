@@ -6,7 +6,9 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Sonata\\jQueryBundle\\' => array($vendorDir . '/sonata-project/jquery-bundle'),
     'Sonata\\UserBundle\\' => array($vendorDir . '/sonata-project/user-bundle'),
+    'Sonata\\IntlBundle\\' => array($vendorDir . '/sonata-project/intl-bundle'),
     'Sonata\\EasyExtendsBundle\\' => array($vendorDir . '/sonata-project/easy-extends-bundle'),
     'Sonata\\Doctrine\\Tests\\' => array($vendorDir . '/sonata-project/doctrine-extensions/tests'),
     'Sonata\\Doctrine\\' => array($vendorDir . '/sonata-project/doctrine-extensions/src'),
@@ -16,6 +18,7 @@ return array(
     'Sonata\\Cache\\' => array($vendorDir . '/sonata-project/cache/lib'),
     'Sonata\\BlockBundle\\' => array($vendorDir . '/sonata-project/block-bundle'),
     'Sonata\\AdminBundle\\' => array($vendorDir . '/sonata-project/admin-bundle'),
+    'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'Google\\Authenticator\\Tests\\' => array($vendorDir . '/sonata-project/google-authenticator/tests'),
     'Google\\Authenticator\\' => array($vendorDir . '/sonata-project/google-authenticator/lib'),
 );

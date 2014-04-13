@@ -2012,8 +2012,14 @@ $this->logger->warning('Unable to look for the controller as the "_controller" p
 }
 return false;
 }
-if (is_array($controller) || (is_object($controller) && method_exists($controller,'__invoke'))) {
+if (is_array($controller)) {
 return $controller;
+}
+if (is_object($controller)) {
+if (method_exists($controller,'__invoke')) {
+return $controller;
+}
+throw new \InvalidArgumentException(sprintf('Controller "%s" for URI "%s" is not callable.', get_class($controller), $request->getPathInfo()));
 }
 if (false === strpos($controller,':')) {
 if (method_exists($controller,'__invoke')) {
@@ -2024,7 +2030,7 @@ return $controller;
 }
 $callable = $this->createController($controller);
 if (!is_callable($callable)) {
-throw new \InvalidArgumentException(sprintf('The controller for URI "%s" is not callable.', $request->getPathInfo()));
+throw new \InvalidArgumentException(sprintf('Controller "%s" for URI "%s" is not callable.', $controller, $request->getPathInfo()));
 }
 return $callable;
 }
@@ -2432,10 +2438,10 @@ public function onKernelRequest(GetResponseEvent $event)
 if (!$event->isMasterRequest()) {
 return;
 }
-list($listeners, $exception) = $this->map->getListeners($event->getRequest());
-if (null !== $exception) {
-$this->exceptionListeners[$event->getRequest()] = $exception;
-$exception->register($this->dispatcher);
+list($listeners, $exceptionListener) = $this->map->getListeners($event->getRequest());
+if (null !== $exceptionListener) {
+$this->exceptionListeners[$event->getRequest()] = $exceptionListener;
+$exceptionListener->register($this->dispatcher);
 }
 foreach ($listeners as $listener) {
 $listener->handle($event);
@@ -4724,7 +4730,6 @@ protected function normalizeException(Exception $e)
 $data = array('class'=> get_class($e),'message'=> $e->getMessage(),'file'=> $e->getFile().':'.$e->getLine(),
 );
 $trace = $e->getTrace();
-array_shift($trace);
 foreach ($trace as $frame) {
 if (isset($frame['file'])) {
 $data['trace'][] = $frame['file'].':'.$frame['line'];
@@ -4754,13 +4759,16 @@ return json_encode($data);
 }
 namespace Monolog\Formatter
 {
+use Exception;
 class LineFormatter extends NormalizerFormatter
 {
 const SIMPLE_FORMAT ="[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n";
 protected $format;
-public function __construct($format = null, $dateFormat = null)
+protected $allowInlineLineBreaks;
+public function __construct($format = null, $dateFormat = null, $allowInlineLineBreaks = false)
 {
 $this->format = $format ?: static::SIMPLE_FORMAT;
+$this->allowInlineLineBreaks = $allowInlineLineBreaks;
 parent::__construct($dateFormat);
 }
 public function format(array $record)
@@ -4769,13 +4777,13 @@ $vars = parent::format($record);
 $output = $this->format;
 foreach ($vars['extra'] as $var => $val) {
 if (false !== strpos($output,'%extra.'.$var.'%')) {
-$output = str_replace('%extra.'.$var.'%', $this->convertToString($val), $output);
+$output = str_replace('%extra.'.$var.'%', $this->replaceNewlines($this->convertToString($val)), $output);
 unset($vars['extra'][$var]);
 }
 }
 foreach ($vars as $var => $val) {
 if (false !== strpos($output,'%'.$var.'%')) {
-$output = str_replace('%'.$var.'%', $this->convertToString($val), $output);
+$output = str_replace('%'.$var.'%', $this->replaceNewlines($this->convertToString($val)), $output);
 }
 }
 return $output;
@@ -4788,32 +4796,35 @@ $message .= $this->format($record);
 }
 return $message;
 }
-protected function normalize($data)
+protected function normalizeException(Exception $e)
 {
-if (is_bool($data) || is_null($data)) {
-return var_export($data, true);
-}
-if ($data instanceof \Exception) {
 $previousText ='';
-if ($previous = $data->getPrevious()) {
+if ($previous = $e->getPrevious()) {
 do {
 $previousText .=', '.get_class($previous).': '.$previous->getMessage().' at '.$previous->getFile().':'.$previous->getLine();
 } while ($previous = $previous->getPrevious());
 }
-return'[object] ('.get_class($data).': '.$data->getMessage().' at '.$data->getFile().':'.$data->getLine().$previousText.')';
-}
-return parent::normalize($data);
+return'[object] ('.get_class($e).': '.$e->getMessage().' at '.$e->getFile().':'.$e->getLine().$previousText.')';
 }
 protected function convertToString($data)
 {
-if (null === $data || is_scalar($data)) {
+if (null === $data || is_bool($data)) {
+return var_export($data, true);
+}
+if (is_scalar($data)) {
 return (string) $data;
 }
-$data = $this->normalize($data);
 if (version_compare(PHP_VERSION,'5.4.0','>=')) {
 return $this->toJson($data, true);
 }
 return str_replace('\\/','/', @json_encode($data));
+}
+protected function replaceNewlines($str)
+{
+if ($this->allowInlineLineBreaks) {
+return $str;
+}
+return preg_replace('{[\r\n]+}',' ', $str);
 }
 }
 }
@@ -4985,7 +4996,8 @@ throw new \UnexpectedValueException(sprintf('The stream or file "%s" could not b
 }
 fwrite($this->stream, (string) $record['formatted']);
 }
-private function customErrorHandler($code, $msg) {
+private function customErrorHandler($code, $msg)
+{
 $this->errorMessage = preg_replace('{^fopen\(.*?\): }','', $msg);
 }
 }
@@ -7881,12 +7893,14 @@ use Sonata\AdminBundle\Admin\FieldDescriptionInterface;
 use Sonata\AdminBundle\Builder\FormContractorInterface;
 use Sonata\AdminBundle\Builder\ListBuilderInterface;
 use Sonata\AdminBundle\Builder\DatagridBuilderInterface;
+use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 use Sonata\AdminBundle\Security\Handler\SecurityHandlerInterface;
 use Sonata\AdminBundle\Builder\RouteBuilderInterface;
 use Sonata\AdminBundle\Translator\LabelTranslatorStrategyInterface;
 use Sonata\AdminBundle\Validator\ErrorElement;
 use Sonata\AdminBundle\Route\RouteGeneratorInterface;
 use Knp\Menu\FactoryInterface as MenuFactoryInterface;
+use Knp\Menu\ItemInterface as MenuItemInterface;
 use Symfony\Component\Validator\ValidatorInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -7987,6 +8001,7 @@ public function prePersist($object);
 public function postPersist($object);
 public function preRemove($object);
 public function postRemove($object);
+public function preBatchAction($actionName, ProxyQueryInterface $query, array & $idx, $allElements);
 public function getFilterParameters();
 public function hasSubject();
 public function validate(ErrorElement $errorElement, $object);
@@ -8020,6 +8035,8 @@ public function getBreadcrumbs($action);
 public function setCurrentChild($currentChild);
 public function getCurrentChild();
 public function getTranslationLabel($label, $context ='', $type ='');
+public function buildSideMenu($action, AdminInterface $childAdmin = null);
+public function buildTabMenu($action, AdminInterface $childAdmin = null);
 }
 }
 namespace Symfony\Component\Security\Acl\Model
@@ -8031,6 +8048,7 @@ public function getObjectIdentifier();
 }
 namespace Sonata\AdminBundle\Admin
 {
+use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\PropertyAccess\PropertyPath;
@@ -8117,7 +8135,7 @@ protected $validator = null;
 protected $configurationPool;
 protected $menu;
 protected $menuFactory;
-protected $loaded = array('view_fields'=> false,'view_groups'=> false,'routes'=> false,'side_menu'=> false,
+protected $loaded = array('view_fields'=> false,'view_groups'=> false,'routes'=> false,'tab_menu'=> false,
 );
 protected $formTheme = array();
 protected $filterTheme = array();
@@ -8146,6 +8164,10 @@ protected function configureRoutes(RouteCollection $collection)
 }
 protected function configureSideMenu(MenuItemInterface $menu, $action, AdminInterface $childAdmin = null)
 {
+}
+protected function configureTabMenu(MenuItemInterface $menu, $action, AdminInterface $childAdmin = null)
+{
+$this->configureSideMenu($menu, $action, $childAdmin);
 }
 public function getExportFormats()
 {
@@ -8233,6 +8255,9 @@ public function preRemove($object)
 {}
 public function postRemove($object)
 {}
+public function preBatchAction($actionName, ProxyQueryInterface $query, array & $idx, $allElements)
+{
+}
 protected function buildShow()
 {
 if ($this->show) {
@@ -8339,7 +8364,7 @@ return;
 }
 if ($this->isChild() && $this->getParentAssociationMapping()) {
 $parent = $this->getParent()->getObject($this->request->get($this->getParent()->getIdParameter()));
-$propertyAccessor = PropertyAccess::getPropertyAccessor();
+$propertyAccessor = PropertyAccess::createPropertyAccessor();
 $propertyPath = new PropertyPath($this->getParentAssociationMapping());
 $object = $this->getSubject();
 $value = $propertyAccessor->getValue($object, $propertyPath);
@@ -8644,22 +8669,26 @@ public function getDatagrid()
 $this->buildDatagrid();
 return $this->datagrid;
 }
-public function buildSideMenu($action, AdminInterface $childAdmin = null)
+public function buildTabMenu($action, AdminInterface $childAdmin = null)
 {
-if ($this->loaded['side_menu']) {
+if ($this->loaded['tab_menu']) {
 return;
 }
-$this->loaded['side_menu'] = true;
+$this->loaded['tab_menu'] = true;
 $menu = $this->menuFactory->createItem('root');
-$menu->setChildrenAttribute('class','nav nav-list');
+$menu->setChildrenAttribute('class','nav navbar-nav');
 if (method_exists($menu,"setCurrentUri")) {
 $menu->setCurrentUri($this->getRequest()->getBaseUrl().$this->getRequest()->getPathInfo());
 }
-$this->configureSideMenu($menu, $action, $childAdmin);
+$this->configureTabMenu($menu, $action, $childAdmin);
 foreach ($this->getExtensions() as $extension) {
-$extension->configureSideMenu($this, $menu, $action, $childAdmin);
+$extension->configureTabMenu($this, $menu, $action, $childAdmin);
 }
 $this->menu = $menu;
+}
+public function buildSideMenu($action, AdminInterface $childAdmin = null)
+{
+return $this->buildTabMenu($action, $childAdmin);
 }
 public function getSideMenu($action, AdminInterface $childAdmin = null)
 {
@@ -9317,6 +9346,7 @@ public function configureDatagridFilters(DatagridMapper $filter);
 public function configureShowFields(ShowMapper $filter);
 public function configureRoutes(AdminInterface $admin, RouteCollection $collection);
 public function configureSideMenu(AdminInterface $admin, MenuItemInterface $menu, $action, AdminInterface $childAdmin = null);
+public function configureTabMenu(AdminInterface $admin, MenuItemInterface $menu, $action, AdminInterface $childAdmin = null);
 public function validate(AdminInterface $admin, ErrorElement $errorElement, $object);
 public function configureQuery(AdminInterface $admin, ProxyQueryInterface $query, $context ='list');
 public function alterNewInstance(AdminInterface $admin, $object);
@@ -9355,6 +9385,10 @@ public function configureRoutes(AdminInterface $admin, RouteCollection $collecti
 {}
 public function configureSideMenu(AdminInterface $admin, MenuItemInterface $menu, $action, AdminInterface $childAdmin = null)
 {}
+public function configureTabMenu(AdminInterface $admin, MenuItemInterface $menu, $action, AdminInterface $childAdmin = null)
+{
+$this->configureSideMenu($admin, $menu, $action, $childAdmin);
+}
 public function validate(AdminInterface $admin, ErrorElement $errorElement, $object)
 {}
 public function configureQuery(AdminInterface $admin, ProxyQueryInterface $query, $context ='list')
@@ -9383,6 +9417,7 @@ public function postRemove(AdminInterface $admin, $object)
 }
 namespace Sonata\AdminBundle\Admin
 {
+use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Common\Util\ClassUtils;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormView;
@@ -9462,7 +9497,10 @@ $method = sprintf('add%s', $this->camelize($mapping['fieldName']));
 if (!method_exists($object, $method)) {
 $method = rtrim($method,'s');
 if (!method_exists($object, $method)) {
+$method = sprintf('add%s', $this->camelize(Inflector::singularize($mapping['fieldName'])));
+if (!method_exists($object, $method)) {
 throw new \RuntimeException(sprintf('Please add a method %s in the %s class!', $method, ClassUtils::getClass($object)));
+}
 }
 }
 $object->$method($instance);
@@ -9647,14 +9685,14 @@ $parameters = array();
 if ($this->getOption('code')) {
 $getters[] = $this->getOption('code');
 }
-if($this->getOption('parameters')){
+if ($this->getOption('parameters')) {
 $parameters = $this->getOption('parameters');
 }
 $getters[] ='get'. $camelizedFieldName;
 $getters[] ='is'. $camelizedFieldName;
 foreach ($getters as $getter) {
 if (method_exists($object, $getter)) {
-return call_user_func_array(array($object, $getter),$parameters);
+return call_user_func_array(array($object, $getter), $parameters);
 }
 }
 if (isset($object->{$fieldName})) {
@@ -9798,6 +9836,7 @@ protected $adminServiceIds = array();
 protected $adminGroups = array();
 protected $adminClasses = array();
 protected $templates = array();
+protected $assets = array();
 protected $title;
 protected $titleLogo;
 protected $options;
@@ -9941,12 +9980,12 @@ public function getTitle()
 {
 return $this->title;
 }
-public function getOption($name)
+public function getOption($name, $default = null)
 {
 if (isset($this->options[$name])) {
 return $this->options[$name];
 }
-return null;
+return $default;
 }
 }
 }
@@ -11698,7 +11737,7 @@ $groups = $this->getGroups();
 if (!isset($groups[$name])) {
 $groups[$name] = array();
 }
-$groups[$name] = array_merge(array('collapsed'=> false,'fields'=> array(),'description'=> false,'translation_domain'=> null,
+$groups[$name] = array_merge(array('collapsed'=> false,'class'=> false,'fields'=> array(),'description'=> false,'translation_domain'=> null,
 ), $groups[$name], $options);
 $this->setGroups($groups);
 $this->currentGroup = $name;
@@ -12515,7 +12554,8 @@ public function import($resource, $type = null, $ignoreErrors = false, $sourceRe
 try {
 $loader = $this->resolve($resource, $type);
 if ($loader instanceof FileLoader && null !== $this->currentDir) {
-$resource = $this->locator->locate($resource, $this->currentDir, false);
+$locator = $loader->getLocator() ?: $this->locator;
+$resource = $locator->locate($resource, $this->currentDir, false);
 }
 $resources = is_array($resource) ? $resource : array($resource);
 for ($i = 0; $i < $resourcesCount = count($resources); $i++ ) {
@@ -13554,7 +13594,7 @@ $fieldDescription->getAdmin()->getCode()
 }
 return call_user_func(array($element, $method));
 }
-return PropertyAccess::getPropertyAccessor()->getValue($element, $propertyPath);
+return PropertyAccess::createPropertyAccessor()->getValue($element, $propertyPath);
 }
 public function getUrlsafeIdentifier($model)
 {

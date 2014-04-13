@@ -2,4 +2,4 @@ _assetic:
     resource: .
     type: assetic
 _app:
-    resource: /Volumes/HELLERUP/GLOBAL/SWPROJEKTE/doccon/app/config/routing_dev.yml
+    resource: /GLOBAL/SWPROJEKTE/doccon/app/config/routing_dev.yml

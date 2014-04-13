@@ -21,7 +21,11 @@
         "incenteev/composer-parameter-handler": "~2.0",
         "sonata-project/admin-bundle": "dev-master",
         "sonata-project/doctrine-orm-admin-bundle": "dev-master",
-        "sonata-project/user-bundle": "dev-master"
+        "sonata-project/user-bundle": "dev-master",
+        "sonata-project/intl-bundle": "dev-master",
+        "sonata-project/jquery-bundle": "1.10.*@dev",
+        
+        "stof/doctrine-extensions-bundle": "~1.1@dev"
     },
     "scripts": {
         "post-install-cmd": [

@@ -2,13 +2,13 @@ parameters:
     database_driver: pdo_mysql
     database_host: localhost
     database_port: null
-    database_name: doccon_dev
+    database_name: doccondev
     database_user: symfony
     database_password: sensio
     mailer_transport: smtp
     mailer_host: 127.0.0.1
     mailer_user: null
     mailer_password: null
-    locale: en
-    secret: 808a7d58e4839e106668827fa10b647e22
+    locale: de
+    secret: 46c6b5691410c9510bc5b10e81e52bbcab1
     database_path: null

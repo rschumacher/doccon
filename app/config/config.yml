@@ -4,7 +4,8 @@ imports:
 
 framework:
     #esi:             ~
-    #translator:      { fallback: "%locale%" }
+    translator:      { fallback: "en" }
+    # translator:      { fallback: "%locale_fallback%" }
     secret:          "%secret%"
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
@@ -67,7 +68,30 @@ doctrine:
         #         mappings:
         #             ApplicationSonataUserBundle: ~
         #             SonataUserBundle: ~
-
+        #             gedmo_translatable:
+        #                 type: annotation
+        #                 prefix: Gedmo\Translatable\Entity
+        #                 dir: "%kernel.root_dir%/../vendor/gedmo/doctrine-extensions/lib/Gedmo/Translatable/Entity"
+        #                 alias: GedmoTranslatable # this one is optional and will default to the name set for the mapping
+        #                 is_bundle: false
+        #             gedmo_translator:
+        #                 type: annotation
+        #                 prefix: Gedmo\Translator\Entity
+        #                 dir: "%kernel.root_dir%/../vendor/gedmo/doctrine-extensions/lib/Gedmo/Translator/Entity"
+        #                 alias: GedmoTranslator # this one is optional and will default to the name set for the mapping
+        #                 is_bundle: false
+        #             gedmo_loggable:
+        #                 type: annotation
+        #                 prefix: Gedmo\Loggable\Entity
+        #                 dir: "%kernel.root_dir%/../vendor/gedmo/doctrine-extensions/lib/Gedmo/Loggable/Entity"
+        #                 alias: GedmoLoggable # this one is optional and will default to the name set for the mapping
+        #                 is_bundle: false
+        #             gedmo_tree:
+        #                 type: annotation
+        #                 prefix: Gedmo\Tree\Entity
+        #                 dir: "%kernel.root_dir%/../vendor/gedmo/doctrine-extensions/lib/Gedmo/Tree/Entity"
+        #                 alias: GedmoTree # this one is optional and will default to the name set for the mapping
+        #                 is_bundle: false        
 
 # Swiftmailer Configuration
 swiftmailer:
@@ -102,6 +126,7 @@ sonata_block:
         # Your other blocks
         sonata.user.block.menu:    # used to display the menu in profile pages
         sonata.user.block.account: # used to display menu option (login option)
+        sonata.block.service.text: # used to display menu option (login option)
 
 sonata_admin:
     title:      BDK Signalling Programme - Document Control Management
@@ -110,43 +135,54 @@ sonata_admin:
         dashboard: SonataAdminBundle:Core:dashboard.html.twig
 
     dashboard:
-        # blocks:
-        #     -
-        #         position: left
-        #         type: sonata.admin.block.admin_list
-        #     -
-        #         position: right
-        #         type: sonata.block.service.text
-        #         settings:
-        #             content: >
-        #                 <h2>Welcome to the SP Document Control Tool</h2>
-        #                 <p>This is a <code>sonata.block.service.text</code> from the Block
-        #                 Bundle, you can create and add new block in these area by configuring
-        #                 the <code>sonata_admin</code> section.</p> <br /> For instance, here
-        #                 a RSS feed parser (<code>sonata.block.service.rss</code>):
-        #     -
-        #         position: left
-        #         type: sonata.block.service.text
-        #         settings:
-        #             content: >
-        #                 <h2>Block 2 LEFT</h2>
-        #                 <p>This is a <code>sonata.block.service.text</code> from the Block
-        #                 Bundle, you can create and add new block in these area by configuring
-        #                 the <code>sonata_admin</code> section.</p> <br /> For instance, here
-        #                 a RSS feed parser (<code>sonata.block.service.rss</code>):
-        #     -
-        #         position: right
-        #         type: sonata.block.service.text
-        #         settings:
-        #             content: >
-        #                 <h2>Block 2 RIGHT</h2>
-        #                 <p>This is a <code>sonata.block.service.text</code> from the Block
-        #                 Bundle, you can create and add new block in these area by configuring
-        #                 the <code>sonata_admin</code> section.</p> <br /> For instance, here
-        #                 a RSS feed parser (<code>sonata.block.service.rss</code>):
+        blocks:
+             -
+                 position: left
+                 type: sonata.admin.block.admin_list
+             -
+                 position: right
+                 type: sonata.block.service.text
+                 settings:
+                     content: >
+                         <h2>Welcome to the SP Document Control Tool</h2>
+                         <p>This is a <code>sonata.block.service.text</code> from the Block
+                         Bundle, you can create and add new block in these area by configuring
+                         the <code>sonata_admin</code> section.</p> <br /> For instance, here
+                         a RSS feed parser (<code>sonata.block.service.rss</code>):
+#             -
+#                 position: left
+#                 type: sonata.block.service.text
+#                 settings:
+#                     content: >
+#                         <h2>Block 2 LEFT</h2>
+#                         <p>This is a <code>sonata.block.service.text</code> from the Block
+#                         Bundle, you can create and add new block in these area by configuring
+#                         the <code>sonata_admin</code> section.</p> <br /> For instance, here
+#                         a RSS feed parser (<code>sonata.block.service.rss</code>):
+#             -
+#                 position: right
+#                 type: sonata.block.service.text
+#                 settings:
+#                     content: >
+#                         <h2>Block 2 RIGHT</h2>
+#                         <p>This is a <code>sonata.block.service.text</code> from the Block
+#                         Bundle, you can create and add new block in these area by configuring
+#                         the <code>sonata_admin</code> section.</p> <br /> For instance, here
+#                         a RSS feed parser (<code>sonata.block.service.rss</code>):
 
 
 sonata_user:
     security_acl: true
     manager_type: orm # can be orm or mongodb
 
+
+sonata_intl:
+    timezone:
+        locales:
+            fr:    Europe/Paris
+            en_UK: Europe/London
+            de_CH:  Europe/Zurich
+            de:     Europe/Berlin
+        detectors:
+            - sonata.intl.timezone_detector.user
+            - sonata.intl.timezone_detector.locale
