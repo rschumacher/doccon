@@ -129,7 +129,8 @@ sonata_block:
         sonata.block.service.text: # used to display menu option (login option)
 
 sonata_admin:
-    title:      BDK Signalling Programme - Document Control Management
+    title:      EBBE DocCon
+    # title:      BDK Signalling Programme - Document Control Management
     title_logo: bundles/ebbedoccon/images/BDK_Logo_white_on_black_small.png
     templates:
         dashboard: SonataAdminBundle:Core:dashboard.html.twig
@@ -144,10 +145,8 @@ sonata_admin:
                  type: sonata.block.service.text
                  settings:
                      content: >
-                         <h2>Welcome to the SP Document Control Tool</h2>
-                         <p>This is a <code>sonata.block.service.text</code> from the Block
-                         Bundle, you can create and add new block in these area by configuring
-                         the <code>sonata_admin</code> section.</p> <br /> For instance, here
+                         <h2>Welcome to the BDK Signalling Programme Document Control Tool</h2>
+                         <p>Document Planning List<br /> For instance, here
                          a RSS feed parser (<code>sonata.block.service.rss</code>):
 #             -
 #                 position: left
@@ -173,7 +172,7 @@ sonata_admin:
 
 sonata_user:
     security_acl: true
-    manager_type: orm # can be orm or mongodb
+    manager_type: orm       # can be orm or mongodb
 
 
 sonata_intl:
