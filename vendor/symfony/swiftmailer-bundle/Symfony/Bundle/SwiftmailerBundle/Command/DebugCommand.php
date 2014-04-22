@@ -65,7 +65,7 @@ EOF
         $maxName = strlen('name');
         $maxTransport = strlen('transport');
         $maxSpool = strlen('spool');
-        $maxDelivery = strlen('delivery');
+        $maxEditionAdmin = strlen('delivery');
         $maxSingleAddress = strlen('single address');
 
         $mailers = $this->getContainer()->getParameter('swiftmailer.mailers');
@@ -82,13 +82,13 @@ EOF
             $maxName = max($maxName, strlen($name));
             $maxTransport = max($maxTransport, strlen($transport));
             $maxSpool = max($maxSpool, strlen($spool));
-            $maxDelivery = max($maxDelivery, strlen($delivery));
+            $maxEditionAdmin = max($maxEditionAdmin, strlen($delivery));
             $maxSingleAddress = max($maxSingleAddress, strlen($singleAddress));
         }
-        $format  = '%-'.$maxName.'s %-'.$maxTransport.'s %-'.$maxSpool.'s %-'.$maxDelivery.'s %-'.$maxSingleAddress.'s';
+        $format  = '%-'.$maxName.'s %-'.$maxTransport.'s %-'.$maxSpool.'s %-'.$maxEditionAdmin.'s %-'.$maxSingleAddress.'s';
 
-        $format1  = '%-'.($maxName + 19).'s %-'.($maxTransport + 19).'s %-'.($maxSpool + 19).'s %-'.($maxDelivery + 19).'s %-'.($maxSingleAddress + 19).'s';
-        $output->writeln(sprintf($format1, '<comment>Name</comment>', '<comment>Transport</comment>', '<comment>Spool</comment>', '<comment>Delivery</comment>', '<comment>Single Address</comment>'));
+        $format1  = '%-'.($maxName + 19).'s %-'.($maxTransport + 19).'s %-'.($maxSpool + 19).'s %-'.($maxEditionAdmin + 19).'s %-'.($maxSingleAddress + 19).'s';
+        $output->writeln(sprintf($format1, '<comment>Name</comment>', '<comment>Transport</comment>', '<comment>Spool</comment>', '<comment>EditionAdmin</comment>', '<comment>Single Address</comment>'));
         foreach ($mailers as $name => $mailer) {
             $mailer = $this->getContainer()->get($mailer);
             $transport = $this->getContainer()->getParameter(sprintf('swiftmailer.mailer.%s.transport.name', $name));
@@ -132,7 +132,7 @@ EOF
         if ($this->getContainer()->hasParameter(sprintf('swiftmailer.spool.%s.file.path', $name))) {
             $output->writeln(sprintf('<comment>Spool file</comment>     %s', $this->getContainer()->getParameter(sprintf('swiftmailer.spool.%s.file.path', $name))));
         }
-        $output->writeln(sprintf('<comment>Delivery</comment>       %s', $delivery));
+        $output->writeln(sprintf('<comment>EditionAdmin</comment>       %s', $delivery));
         $output->writeln(sprintf('<comment>Single Address</comment> %s', $singleAddress));
     }
 

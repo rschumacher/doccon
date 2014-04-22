@@ -5,8 +5,8 @@ services:
 #    ebbe_doccon.example:
 #        class: %ebbe_doccon.example.class%
 #        arguments: [@service_id, "plain_value", %parameter%]
-    ebbe_doccon.admin.delivery:
-        class: Ebbe\DocconBundle\Admin\DeliveryAdmin
-        arguments: [~, Ebbe\DocconBundle\Entity\Delivery, EbbeDocconBundle:DeliveryAdmin]
+    ebbe_doccon.admin.edition:
+        class: Ebbe\DocconBundle\Admin\EditionAdmin
+        arguments: [~, Ebbe\DocconBundle\Entity\Edition, EbbeDocconBundle:EditionAdmin]
         tags:
-            - {name: sonata.admin, manager_type: orm, group: admin, label: Delivery}
+            - {name: sonata.admin, manager_type: orm, group: admin, label: Edition }

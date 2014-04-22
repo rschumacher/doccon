@@ -92,7 +92,7 @@ class SwiftmailerExtension extends Extension
         $this->configureMailerSpool($name, $mailer, $container, $transport, $isDefaultMailer);
         $this->configureMailerSenderAddress($name, $mailer, $container, $isDefaultMailer);
         $this->configureMailerAntiFlood($name, $mailer, $container, $isDefaultMailer);
-        $this->configureMailerDeliveryAddress($name, $mailer, $container, $isDefaultMailer);
+        $this->configureMailerEditionAdminAddress($name, $mailer, $container, $isDefaultMailer);
         $this->configureMailerLogging($name, $mailer, $container, $isDefaultMailer);
 
         // alias
@@ -273,7 +273,7 @@ class SwiftmailerExtension extends Extension
         }
     }
 
-    protected function configureMailerDeliveryAddress($name, array $mailer, ContainerBuilder $container, $isDefaultMailer = false)
+    protected function configureMailerEditionAdminAddress($name, array $mailer, ContainerBuilder $container, $isDefaultMailer = false)
     {
         if (isset($mailer['delivery_address']) && $mailer['delivery_address']) {
             $container->setParameter(sprintf('swiftmailer.mailer.%s.single_address', $name), $mailer['delivery_address']);

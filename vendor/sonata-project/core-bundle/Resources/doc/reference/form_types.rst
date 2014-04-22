@@ -82,7 +82,7 @@ The type has one extra parameter:
     <?php
 
     // The delivery list
-    class Delivery
+    class EditionAdmin
     {
         public static function getStatusList()
         {
@@ -99,7 +99,7 @@ The type has one extra parameter:
 
     // form usage
     $form->add('deliveryStatus', 'sonata_type_translatable_choice', array(
-        'choices' => Delivery::getStatusList(),
+        'choices' => EditionAdmin::getStatusList(),
         'catalogue' => 'SonataOrderBundle'
     ))
 
@@ -110,14 +110,14 @@ StatusType
 The ``StatusType`` is not available as a service. However, you can use it to declare your own type to render a choice of
 status.
 
-Let's say, you have a ``Delivery::getStatusList`` method which return a list of status, now you want to create a form type
+Let's say, you have a ``EditionAdmin::getStatusList`` method which return a list of status, now you want to create a form type
 to expose those values.
 
 .. code-block:: php
 
     <?php
     // The delivery list
-    class Delivery
+    class EditionAdmin
     {
         public static function getStatusList()
         {
