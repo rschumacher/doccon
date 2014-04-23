@@ -10,3 +10,9 @@ services:
         arguments: [~, Ebbe\DocconBundle\Entity\Edition, EbbeDocconBundle:EditionAdmin]
         tags:
             - {name: sonata.admin, manager_type: orm, group: admin, label: Edition }
+
+    ebbe_doccon.admin.document:
+        class: Ebbe\DocconBundle\Admin\DocumentAdmin
+        arguments: [~, Ebbe\DocconBundle\Entity\Document, EbbeDocconBundle:DocumentAdmin]
+        tags:
+            - {name: sonata.admin, manager_type: orm, group: admin, label: Document}

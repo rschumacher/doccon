@@ -8,6 +8,36 @@ use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 
+//  * Column(name="document", type="object")
+// private $document;
+//  * Column(name="provider_lead", type="object")
+// private $providerLead;
+//  * Column(name="doc_resubmitted", type="boolean")
+// private $docResubmitted;
+//  * Column(name="serial_number", type="string", length=255)
+// private $serialNumber;
+//  * Column(name="project_phase", type="string", length=32)
+// private $projectPhase;
+//  * Column(name="project_subphase", type="string", length=32)
+// private $projectSubphase;
+//  * Column(name="project_package", type="string", length=32)
+// private $projectPackage;
+//  * Column(name="version", type="string", length=32)
+// private $version;
+//  * Column(name="name", type="string", length=255)
+// private $name;
+//  * Column(name="acceptor_org", type="string")
+// private $acceptorOrg;
+//  * Column(name="acceptor_lead", type="object")
+// private $acceptorLead;
+//  * Column(name="formality", type="string", length=32)
+// private $formality;
+//  * Column(name="stage_procedure", type="string", length=32)
+// private $stageProcedure;
+//  * Column(name="current_stage", type="string", length=32)
+// private $currentStage;
+
+
 class EditionAdmin extends Admin
 {
     /**
@@ -17,35 +47,20 @@ class EditionAdmin extends Admin
     {
         $datagridMapper
             ->add('id')
-            ->add('originatorOrg')
-            ->add('originatorAuthor')
-            ->add('originatorOwner')
-            ->add('docHasIssues')
-            ->add('docDeleted')
+            ->add('document')
+            ->add('providerLead')
             ->add('docResubmitted')
-            ->add('docForReporting')
             ->add('serialNumber')
-            ->add('docExisting')
-            ->add('project')
             ->add('projectPhase')
             ->add('projectSubphase')
             ->add('projectPackage')
-            ->add('idPrimavera')
-            ->add('originatorDocId')
-            ->add('originatorDocVersion')
-            ->add('hasPreviousEdition')
-            ->add('previousEdition')
-            ->add('title')
-            ->add('recipientOrganisation')
-            ->add('recipientGroup')
-            ->add('recipientLead')
+            ->add('version')
+            ->add('name')
+            // ->add('acceptorOrg')
+            ->add('acceptorLead')
             ->add('formality')
-            ->add('reviewProcess')
-            ->add('reviewCurrentStage')
-            ->add('categoryApp4')
-            ->add('refSetNumber')
-            ->add('relevanceSSrNsOd')
-            ->add('docLocation')
+            ->add('stageProcedure')
+            ->add('currentStage')
         ;
     }
 
@@ -55,41 +70,26 @@ class EditionAdmin extends Admin
     protected function configureListFields(ListMapper $listMapper)
     {
         $listMapper
-            ->add('originatorOrg')
-            ->add('originatorAuthor')
-            ->add('originatorOwner')
-            ->add('docHasIssues')
-            ->add('docDeleted')
+            // ->add('id')
+            ->addIdentifier('document')
+            ->add('providerLead')
             ->add('docResubmitted')
-            ->add('docForReporting')
             ->add('serialNumber')
-            ->add('docExisting')
-            ->add('project')
-            ->add('projectPhase')
-            ->add('projectSubphase')
-            ->add('projectPackage')
-            ->add('idPrimavera')
-            ->add('originatorDocId')
-            ->add('originatorDocVersion')
-            ->add('hasPreviousEdition')
-            ->add('previousEdition')
-			->addIdentifier('title')
-            ->add('recipientOrganisation')
-            ->add('recipientGroup')
-            ->add('recipientLead')
+            ->add('projectSummary')
+            ->add('version')
+            ->addIdentifier('name')
+            ->add('acceptorOrg', 'string')
+            ->add('acceptorLead')
             ->add('formality')
-            ->add('reviewProcess')
-            ->add('reviewCurrentStage')
-            ->add('categoryApp4')
-            ->add('refSetNumber')
-            ->add('relevanceSSrNsOd')
-            ->add('docLocation')
+            ->add('stageProcedure')
+            ->add('currentStage')
+            
 			
             ->add('_action', 'actions', array(
                 'actions' => array(
                     'show' => array(),
                     'edit' => array(),
-                    'delete' => array(),
+                    // 'delete' => array(),
                 )
             ))
         ;
@@ -103,49 +103,37 @@ class EditionAdmin extends Admin
         $formMapper
             // ->add('id')
 		->with('Identification')
-			// ->add('id')
-			->add('hasPreviousEdition')
-			->add('previousEdition')
-			->add('title')
-		->end()
-		->with('Attributes')
-            ->add('docHasIssues')
-            ->add('docDeleted')
-            ->add('docResubmitted')
-            ->add('docForReporting')
-            ->add('serialNumber')
-            ->add('docExisting')
+                ->add('document', 'sonata_type_model_list', array(
+                    'btn_add'       => 'Add new documents',      //Specify a custom label
+                    'btn_list'      => 'button.document.list',     //which will be translated
+                    'btn_delete'    => false,             //or hide the button.
+                    'btn_catalogue' => 'SonataNewsBundle' //Custom translation domain for buttons
+                ), array(
+                    'placeholder' => 'Select a document'
+                ))
+                ->add('name')
+                ->add('version')
 		->end()
 		->with('Project')
-			->add('project')
 			->add('projectPhase')
 			->add('projectSubphase')
 			->add('projectPackage')
-			->add('idPrimavera')
-			->add('categoryApp4')
-			->add('relevanceSSrNsOd')
 		->end()
-		->with('Originator')
-			->add('originatorOrg')
-			->add('originatorAuthor')
-			->add('originatorOwner')
-			->add('originatorDocId')
-			->add('originatorDocVersion')
+		->with('Provider Information')
+			->add('providerLead')
 		->end()
-		->with('Recipient')
-			->add('recipientOrganisation')
-			->add('recipientGroup')
-			->add('recipientLead')
-			->add('formality')
-		->end()
-		->with('Reviewers')
+		->with('Acceptor Information')
+			// ->add('acceptorOrg', 'string')
+			->add('acceptorLead')
 		->end()
 		->with('Review Process')
-			->add('reviewProcess')
-			->add('reviewCurrentStage')
-			->add('refSetNumber')
-		->with('Reviewers')
-			->add('docLocation')
+			->add('stageProcedure')
+			->add('currentStage')
+		->end()
+		->with('various Attributes')
+			->add('docResubmitted')
+			->add('serialNumber')
+			->add('formality')
 		->end()
         ;
     }
@@ -157,35 +145,20 @@ class EditionAdmin extends Admin
     {
         $showMapper
             ->add('id')
-            ->add('originatorOrg')
-            ->add('originatorAuthor')
-            ->add('originatorOwner')
-            ->add('docHasIssues')
-            ->add('docDeleted')
+            ->add('document')
+            ->add('providerLead')
             ->add('docResubmitted')
-            ->add('docForReporting')
             ->add('serialNumber')
-            ->add('docExisting')
-            ->add('project')
             ->add('projectPhase')
             ->add('projectSubphase')
             ->add('projectPackage')
-            ->add('idPrimavera')
-            ->add('originatorDocId')
-            ->add('originatorDocVersion')
-            ->add('hasPreviousEdition')
-            ->add('previousEdition')
-            ->add('title')
-            ->add('recipientOrganisation')
-            ->add('recipientGroup')
-            ->add('recipientLead')
+            ->add('version')
+            ->add('name')
+            ->add('acceptorOrg', 'string')
+            ->add('acceptorLead')
             ->add('formality')
-            ->add('reviewProcess')
-            ->add('reviewCurrentStage')
-            ->add('categoryApp4')
-            ->add('refSetNumber')
-            ->add('relevanceSSrNsOd')
-            ->add('docLocation')
+            ->add('stageProcedure')
+            ->add('currentStage')
         ;
     }
 }

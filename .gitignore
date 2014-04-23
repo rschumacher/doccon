@@ -3,6 +3,8 @@
 /app/cache/*
 /app/cache/**
 /app/logs/*
+/app/logs/**
 /vendor/*
+/vendor/**
 /app/config/parameters.yml
 /.idea
